@@ -1,0 +1,21 @@
+#! /bin/sh
+
+DEVICE=$(kdialog \
+	--title "$0" \
+	--combobox "Select the drive to use." $(lsblk -npdlo NAME))
+
+IMAGE=$(kdialog \
+	--title "$0" \
+	--inputbox "Type the image name.")
+
+URL=$(kdialog \
+	--title "$0" \
+	--inputbox "Please provide the file name or URL of the image.")
+
+znx deploy $DEVICE $IMAGE $URL &&
+	kdialog \
+		--title "$0" \
+		--msgbox "Successfully deployed the image." ||
+	kdialog \
+		--title "$0" \
+		--error "Failed to deploy the image."
