@@ -1,21 +1,175 @@
 #! /bin/sh
 
-DEVICE=$(kdialog \
-	--title "$0" \
-	--combobox "Select the drive to use." $(lsblk -npdlo NAME))
+TITLE="ZNX Gui"
+ZNX="znx"
 
-IMAGE=$(kdialog \
-	--title "$0" \
-	--inputbox "Type the image name.")
+znxGuiGetDevice() {
+  echo $(kdialog \
+          --title "$TITLE" \
+          --combobox "Select the target device to deploy the image" $(lsblk -npdlo NAME))
+}
 
-URL=$(kdialog \
-	--title "$0" \
-	--inputbox "Please provide the file name or URL of the image.")
+znxGuiGetName() {
+  echo $(kdialog \
+          --title "$TITLE" \
+          --inputbox "Name of image (Ex : nitrux/rolling, nitrux/release_v1-01)")
+}
 
-znx deploy $DEVICE $IMAGE $URL &&
-	kdialog \
-		--title "$0" \
-		--msgbox "Successfully deployed the image." ||
-	kdialog \
-		--title "$0" \
-		--error "Failed to deploy the image."
+znxGuiGetPath() {
+  echo $(kdialog \
+          --title "$TITLE" \
+          --inputbox "Full Path of image or URL to zsync file")
+}
+
+showSuccess() {
+  kdialog \
+    --title "Success - $TITLE" \
+    --msgbox "$1"
+}
+
+showError() {
+  kdialog \
+    --title "Error - $TITLE" \
+    --error "$1"
+}
+
+showUnexpectedError() {
+  kdialog \
+    --title "Error - $TITLE" \
+    --error "Unexpected Error Occurred. Check console for more details"
+}
+
+showProgressDialog() {
+  kdialog \
+    --title "$TITLE" \
+    --msgbox "Please Wait. This may take some time.\nYou can close this window. You'll be informed once the command completes." &
+}
+
+znxGuiInit() {
+  echo "- Running Command \`init\`"
+  
+  RESPONSE=$(kdialog --yesno "This will erase your device. Are you sure you wish to proceed?")
+
+  if [ $? -eq 0 ]; then
+    DEVICE=$(znxGuiGetDevice)
+    CMD="$ZNX init $DEVICE"
+
+    showProgressDialog
+    $CMD
+
+    if [ $? -gt 0 ]; then
+      showUnexpectedError
+    else
+      showSuccess "Function \`init\` completed successfully"
+    fi
+  fi
+}
+
+znxGuiDeploy() {
+  echo "- Running Command \`deploy\`"
+
+  DEVICE=$(znxGuiGetDevice)
+  IMAGENAME=$(znxGuiGetName)
+  IMAGEPATH=$(znxGuiGetPath)
+  CMD="$ZNX deploy $DEVICE $IMAGENAME $IMAGEPATH"
+
+  showProgressDialog  
+  $CMD
+
+  if [ $? -gt 0 ]; then
+    showUnexpectedError
+  else
+    showSuccess "Function \`deploy\` completed successfully"
+  fi
+}
+
+znxGuiList() {  
+  echo "- Running Command \`list\`"
+
+  DEVICE=$(znxGuiGetDevice)
+  CMD="$ZNX list $DEVICE"
+
+  showProgressDialog
+  $CMD > /tmp/znx_list_output 2>&1
+
+  if [ $? -gt 0 ]; then
+    showUnexpectedError
+    echo $OUTPUT
+  else
+    $(kdialog --textbox /tmp/znx_list_output)
+  fi
+
+  rm /tmp/znx_list_output
+}
+
+znxGuiUpdate() {
+  echo "- Running Command \`update\`"
+
+  DEVICE=$(znxGuiGetDevice)
+  IMAGENAME=$(znxGuiGetName)
+  CMD="$ZNX update $DEVICE $IMAGENAME"
+
+  showProgressDialog
+  $CMD
+
+  if [ $? -gt 0 ]; then
+    showUnexpectedError
+  else
+    showSuccess "Function \`update\` completed successfully"
+  fi
+}
+
+znxGuiRemove() {  
+  echo "- Running Command \`remove\`"
+
+  DEVICE=$(znxGuiGetDevice)
+  IMAGENAME=$(znxGuiGetName)
+  CMD="$ZNX remove $DEVICE $IMAGENAME"
+
+  showProgressDialog
+  $CMD
+
+  if [ $? -gt 0 ]; then
+    showUnexpectedError
+  else
+    showSuccess "Function \`remove\` completed successfully"
+  fi
+}
+
+while [ true ]; do
+  OPTIONS="0 init on \
+  1 deploy off \
+  2 list off \
+  3 update off \
+  4 remove off"
+
+  INPUT_OPTION=$(kdialog \
+                  --title "$TITLE" \
+                  --radiolist "Select the Function to run" $OPTIONS)
+
+  case "$INPUT_OPTION" in
+    0)
+      znxGuiInit
+    ;;
+
+    1)
+      znxGuiDeploy
+    ;;
+
+    2)
+      znxGuiList
+    ;;
+
+    3)
+      znxGuiUpdate
+    ;;
+
+    4)
+      znxGuiRemove
+    ;;
+
+    *)
+      break
+    ;;
+  esac
+done
