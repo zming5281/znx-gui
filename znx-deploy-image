@@ -6,7 +6,7 @@ ZNX="znx"
 znxGuiGetDevice() {
   echo $(kdialog \
           --title "$TITLE" \
-          --combobox "Select the device" $(lsblk -npdlo NAME))
+          --combobox "Select the target device to deploy the image" $(lsblk -npdlo NAME))
 }
 
 znxGuiGetName() {
@@ -41,15 +41,19 @@ showUnexpectedError() {
 
 znxGuiInit() {
   echo "- Running Command \`init\`"
-
-  DEVICE=$(znxGuiGetDevice)
-  CMD="$ZNX init $DEVICE"
-  $CMD
   
-  if [ $? -gt 0 ]; then
-    showUnexpectedError
-  else
-    showSuccess "Function \`init\` completed successfully"
+  RESPONSE=$(kdialog --yesno "This will erase your device. Are you sure you wish to proceed?")
+  
+  if [ $? -eq 0 ]; then
+    DEVICE=$(znxGuiGetDevice)
+    CMD="$ZNX init $DEVICE"
+    $CMD
+    
+    if [ $? -gt 0 ]; then
+      showUnexpectedError
+    else
+      showSuccess "Function \`init\` completed successfully"
+    fi
   fi
 }
 
