@@ -1,0 +1,175 @@
+#! /bin/sh
+
+TITLE="ZNX Gui"
+ZNX="znx"
+
+GetDevice () {
+	echo $(kdialog \
+		--title "$TITLE" \
+		--combobox "Select the target device to deploy the image" $(lsblk -npdlo NAME))
+}
+
+GetName () {
+	echo $(kdialog \
+		--title "$TITLE" \
+		--inputbox "Name of image (Ex : nitrux/rolling, nitrux/release_v1-01)")
+}
+
+GetPath () {
+	echo $(kdialog \
+		--title "$TITLE" \
+		--inputbox "Full Path of image or URL to zsync file")
+}
+
+showSuccess () {
+	kdialog \
+		--title "Success - $TITLE" \
+		--msgbox "$1"
+}
+
+showError () {
+	kdialog \
+		--title "Error - $TITLE" \
+		--error "$1"
+}
+
+showUnexpectedError () {
+	kdialog \
+		--title "Error - $TITLE" \
+		--error "Unexpected Error Occurred. Check console for more details"
+}
+
+showProgressDialog () {
+	kdialog \
+		--title "$TITLE" \
+		--msgbox "Please Wait. This may take some time.\nYou can close this window. You'll be informed once the command completes." &
+}
+
+Init () {
+	echo "- Running Command \`init\`"
+	
+	RESPONSE=$(kdialog --yesno "This will erase your device. Are you sure you wish to proceed?")
+
+	if [ $? -eq 0 ]; then
+		DEVICE=$(GetDevice)
+		CMD="$ZNX init $DEVICE"
+
+		showProgressDialog
+		$CMD
+
+		if [ $? -gt 0 ]; then
+			showUnexpectedError
+		else
+			showSuccess "Function \`init\` completed successfully"
+		fi
+	fi
+}
+
+Deploy () {
+	echo "- Running Command \`deploy\`"
+
+	DEVICE=$(GetDevice)
+	IMAGENAME=$(GetName)
+	IMAGEPATH=$(GetPath)
+	CMD="$ZNX deploy $DEVICE $IMAGENAME $IMAGEPATH"
+
+	showProgressDialog	
+	$CMD
+
+	if [ $? -gt 0 ]; then
+		showUnexpectedError
+	else
+		showSuccess "Function \`deploy\` completed successfully"
+	fi
+}
+
+List () {	
+	echo "- Running Command \`list\`"
+
+	DEVICE=$(GetDevice)
+	CMD="$ZNX list $DEVICE"
+
+	showProgressDialog
+	$CMD > /tmp/znx_list_output 2>&1
+
+	if [ $? -gt 0 ]; then
+		showUnexpectedError
+		echo $OUTPUT
+	else
+		$(kdialog --textbox /tmp/znx_list_output)
+	fi
+
+	rm /tmp/znx_list_output
+}
+
+Update () {
+	echo "- Running Command \`update\`"
+
+	DEVICE=$(GetDevice)
+	IMAGENAME=$(GetName)
+	CMD="$ZNX update $DEVICE $IMAGENAME"
+
+	showProgressDialog
+	$CMD
+
+	if [ $? -gt 0 ]; then
+		showUnexpectedError
+	else
+		showSuccess "Function \`update\` completed successfully"
+	fi
+}
+
+Remove () {	
+	echo "- Running Command \`remove\`"
+
+	DEVICE=$(GetDevice)
+	IMAGENAME=$(GetName)
+	CMD="$ZNX remove $DEVICE $IMAGENAME"
+
+	showProgressDialog
+	$CMD
+
+	if [ $? -gt 0 ]; then
+		showUnexpectedError
+	else
+		showSuccess "Function \`remove\` completed successfully"
+	fi
+}
+
+while :; do
+	OPTIONS="0 init on \
+	1 deploy off \
+	2 list off \
+	3 update off \
+	4 remove off"
+
+	INPUT_OPTION=$(kdialog \
+					--title "$TITLE" \
+					--radiolist "Select the Function to run" $OPTIONS)
+
+	case "$INPUT_OPTION" in
+		0)
+			Init
+		;;
+
+		1)
+			Deploy
+		;;
+
+		2)
+			List
+		;;
+
+		3)
+			Update
+		;;
+
+		4)
+			Remove
+		;;
+
+		*)
+			break
+		;;
+	esac
+done
