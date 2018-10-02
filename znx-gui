@@ -5,36 +5,42 @@ ZNX="znx"
 
 GetDevice () {
 	echo $(kdialog \
+		--style breeze \
 		--title "$TITLE" \
 		--combobox "Select the target device to deploy the image" $(lsblk -npdlo NAME))
 }
 
 GetName () {
 	echo $(kdialog \
+		--style breeze \
 		--title "$TITLE" \
 		--inputbox "Name of image (Ex : nitrux/rolling, nitrux/release_v1-01)")
 }
 
 GetPath () {
 	echo $(kdialog \
+		--style breeze \
 		--title "$TITLE" \
 		--inputbox "Full Path of image or URL to zsync file")
 }
 
 showSuccess () {
 	kdialog \
+		--style breeze \
 		--title "Success - $TITLE" \
 		--msgbox "$1"
 }
 
 showError () {
 	kdialog \
+		--style breeze \
 		--title "Error - $TITLE" \
 		--error "$1"
 }
 
 showUnexpectedError () {
 	kdialog \
+		--style breeze \
 		--title "Error - $TITLE" \
 		--error "Unexpected Error Occurred. Check console for more details"
 }
@@ -42,13 +48,14 @@ showUnexpectedError () {
 showProgressDialog () {
 	kdialog \
 		--title "$TITLE" \
+		--style breeze \
 		--msgbox "Please Wait. This may take some time.\nYou can close this window. You'll be informed once the command completes." &
 }
 
 Init () {
 	echo "- Running Command \`init\`"
 	
-	RESPONSE=$(kdialog --yesno "This will erase your device. Are you sure you wish to proceed?")
+	RESPONSE=$(kdialog --style breeze --yesno "This will erase your device. Are you sure you wish to proceed?")
 
 	if [ $? -eq 0 ]; then
 		DEVICE=$(GetDevice)
@@ -96,7 +103,7 @@ List () {
 		showUnexpectedError
 		echo $OUTPUT
 	else
-		$(kdialog --textbox /tmp/znx_list_output)
+		$(kdialog --style breeze --textbox /tmp/znx_list_output)
 	fi
 
 	rm /tmp/znx_list_output
@@ -144,6 +151,7 @@ while :; do
 	4 remove off"
 
 	INPUT_OPTION=$(kdialog \
+					--style breeze \
 					--title "$TITLE" \
 					--radiolist "Select the Function to run" $OPTIONS)
 
