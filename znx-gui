@@ -1,7 +1,7 @@
 #! /bin/sh
 
 TITLE="ZNX Gui"
-ZNX="znx"
+ZNX="/Applications/znx"
 
 GetDevice () {
 	echo $(kdialog \
