@@ -1,7 +1,6 @@
 #! /bin/sh
 
 TITLE="ZNX Gui"
-ZNX="znx"
 
 GetDevice () {
 	echo $(kdialog \
@@ -31,13 +30,6 @@ showSuccess () {
 		--msgbox "$1"
 }
 
-showError () {
-	kdialog \
-		--style breeze \
-		--title "Error - $TITLE" \
-		--error "$1"
-}
-
 showUnexpectedError () {
 	kdialog \
 		--style breeze \
@@ -53,94 +45,68 @@ showProgressDialog () {
 }
 
 Init () {
-	echo "- Running Command \`init\`"
-	
-	RESPONSE=$(kdialog --style breeze --yesno "This will erase your device. Are you sure you wish to proceed?")
+	echo "Initializing device."
 
-	if [ $? -eq 0 ]; then
+	if kdialog --style breeze --yesno "This will erase your device. Are you sure you wish to proceed?"; then
 		DEVICE=$(GetDevice)
-		CMD="$ZNX init $DEVICE"
 
 		showProgressDialog
-		$CMD
 
-		if [ $? -gt 0 ]; then
-			showUnexpectedError
-		else
-			showSuccess "Function \`init\` completed successfully"
-		fi
+		znx init $DEVICE &&
+			showUnexpectedError ||
+			showSuccess "Device initialized."
 	fi
 }
 
 Deploy () {
-	echo "- Running Command \`deploy\`"
+	echo "Deploying image."
 
 	DEVICE=$(GetDevice)
 	IMAGENAME=$(GetName)
 	IMAGEPATH=$(GetPath)
-	CMD="$ZNX deploy $DEVICE $IMAGENAME $IMAGEPATH"
 
 	showProgressDialog	
-	$CMD
 
-	if [ $? -gt 0 ]; then
-		showUnexpectedError
-	else
-		showSuccess "Function \`deploy\` completed successfully"
-	fi
+	znx deploy $DEVICE $IMAGENAME $IMAGEPATH &&
+		showUnexpectedError ||
+		showSuccess "Successfully deployed $IMAGENAME."
 }
 
 List () {	
-	echo "- Running Command \`list\`"
+	echo "Listing images."
 
 	DEVICE=$(GetDevice)
-	CMD="$ZNX list $DEVICE"
 
 	showProgressDialog
-	$CMD > /tmp/znx_list_output 2>&1
 
-	if [ $? -gt 0 ]; then
+	kdialog --style breeze --textbox $(znx list $DEVICE) ||
 		showUnexpectedError
-		echo $OUTPUT
-	else
-		$(kdialog --style breeze --textbox /tmp/znx_list_output)
-	fi
-
-	rm /tmp/znx_list_output
 }
 
 Update () {
-	echo "- Running Command \`update\`"
+	echo "Updating image."
 
 	DEVICE=$(GetDevice)
 	IMAGENAME=$(GetName)
-	CMD="$ZNX update $DEVICE $IMAGENAME"
 
 	showProgressDialog
-	$CMD
 
-	if [ $? -gt 0 ]; then
+	znx update $DEVICE $IMAGENAME &&
+		showSuccess "Successfully updated $IMAGENAME." ||
 		showUnexpectedError
-	else
-		showSuccess "Function \`update\` completed successfully"
-	fi
 }
 
 Remove () {	
-	echo "- Running Command \`remove\`"
+	echo "Removing image."
 
 	DEVICE=$(GetDevice)
 	IMAGENAME=$(GetName)
-	CMD="$ZNX remove $DEVICE $IMAGENAME"
 
 	showProgressDialog
-	$CMD
 
-	if [ $? -gt 0 ]; then
+	znx remove $DEVICE $IMAGENAME &&
+		showSuccess "Successfully removed $IMAGENAME" ||
 		showUnexpectedError
-	else
-		showSuccess "Function \`remove\` completed successfully"
-	fi
 }
 
 while :; do
