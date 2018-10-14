@@ -53,8 +53,8 @@ Init () {
 		showProgressDialog
 
 		znx init $DEVICE &&
-			showUnexpectedError ||
-			showSuccess "Device initialized."
+			showSuccess "Device initialized." ||
+			showUnexpectedError
 	fi
 }
 
@@ -68,8 +68,8 @@ Deploy () {
 	showProgressDialog	
 
 	znx deploy $DEVICE $IMAGENAME $IMAGEPATH &&
-		showUnexpectedError ||
-		showSuccess "Successfully deployed $IMAGENAME."
+		showSuccess "Successfully deployed $IMAGENAME." ||
+		showUnexpectedError
 }
 
 List () {	
