@@ -6,21 +6,21 @@ GetDevice () {
 	echo $(kdialog \
 		--style breeze \
 		--title "$TITLE" \
-		--combobox "Select the target device to deploy the image" $(lsblk -npdlo NAME))
+		--combobox "Select the target device to deploy the image." $(lsblk -npdlo NAME))
 }
 
 GetName () {
 	echo $(kdialog \
 		--style breeze \
 		--title "$TITLE" \
-		--inputbox "Name of image (Ex : nitrux/rolling, nitrux/release_v1-01)")
+		--inputbox "Name of image (Ex : nitrux/rolling, nitrux/release_v1-01).")
 }
 
 GetPath () {
 	echo $(kdialog \
 		--style breeze \
 		--title "$TITLE" \
-		--inputbox "Full Path of image or URL to zsync file")
+		--inputbox "Full path or  web URL to ISO image or zsync file.")
 }
 
 showSuccess () {
@@ -34,7 +34,7 @@ showUnexpectedError () {
 	kdialog \
 		--style breeze \
 		--title "Error - $TITLE" \
-		--error "Unexpected Error Occurred. Check console for more details"
+		--error "Unexpected Error Occurred. Run this software in a Terminal for more details."
 }
 
 showProgressDialog () {
@@ -47,7 +47,7 @@ showProgressDialog () {
 Init () {
 	echo "Initializing device."
 
-	if kdialog --style breeze --yesno "This will erase your device. Are you sure you wish to proceed?"; then
+	if kdialog --style breeze --yesno "This will erase your device. Are you sure you wish to proceed?."; then
 		DEVICE=$(GetDevice)
 
 		showProgressDialog
@@ -73,7 +73,7 @@ Deploy () {
 }
 
 List () {	
-	echo "Listing images."
+	echo "Listing deployed images."
 
 	DEVICE=$(GetDevice)
 
@@ -84,7 +84,7 @@ List () {
 }
 
 Update () {
-	echo "Updating image."
+	echo "Updating deployed image."
 
 	DEVICE=$(GetDevice)
 	IMAGENAME=$(GetName)
@@ -97,7 +97,7 @@ Update () {
 }
 
 Remove () {	
-	echo "Removing image."
+	echo "Removing deployed image."
 
 	DEVICE=$(GetDevice)
 	IMAGENAME=$(GetName)
