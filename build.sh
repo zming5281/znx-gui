@@ -29,7 +29,7 @@ printf \
 Type=Application
 Name=znx-gui
 Exec=znx-gui
-Icon=znx
+Icon=znx-gui
 Comment="Operating system manager."
 Terminal=true
 Categories=Utility;
