@@ -1,0 +1,15 @@
+sudo: required
+
+script:
+  - sudo docker run --rm -v $(pwd)/:/build/ -w /build/ ubuntu:xenial /bin/bash build.sh $TRAVIS_COMMIT
+
+after_success:
+  - wget -q https://github.com/probonopd/uploadtool/raw/master/upload.sh
+  - bash upload.sh out/znx-gui
+
+branches:
+  except:
+    - /^(?i:continuous)$/
+
+notifications:
+  email: false
