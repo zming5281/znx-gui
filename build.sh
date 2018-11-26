@@ -4,7 +4,7 @@
 
 apt-get -qq -y update
 apt-get -qq -y install wget patchelf file libcairo2
-apt-get -qq -y install busybox-static kdialog
+apt-get -qq -y install busybox-static kde-baseapps-bin
 
 wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
 wget -q https://raw.githubusercontent.com/luis-lavaire/bin/master/copier
@@ -22,7 +22,7 @@ sed -i "s/@TRAVIS_COMMIT@/${1:0:7}/" znx-gui
 # -- Populate appdir.
 
 mkdir -p appdir/bin
-cp grub.cfg znx-gui appdir
+cp znx-gui appdir
 
 printf \
 '[Desktop Entry]
