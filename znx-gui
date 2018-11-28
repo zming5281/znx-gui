@@ -1,149 +1,162 @@
 #! /bin/sh
 
-TITLE="ZNX Gui"
 
-GetDevice () {
-	echo $(kdialog \
-		--style breeze \
-		--title "$TITLE" \
-		--combobox "Select the target device to deploy the image." $(lsblk -npdlo NAME))
-}
+# -- Variables.
 
-GetName () {
-	echo $(kdialog \
-		--style breeze \
-		--title "$TITLE" \
-		--inputbox "Name of image (Ex : nitrux/rolling, nitrux/release_v1-01).")
-}
+TITLE=ZNX-GUI.
+STYLE=breeze
 
-GetPath () {
-	echo $(kdialog \
-		--style breeze \
-		--title "$TITLE" \
-		--inputbox "Full path or  web URL to ISO image or zsync file.")
-}
 
-showSuccess () {
+# -- Functions.
+
+error () {
+	printf "znx-gui: \e[31mError:\e[0m $@\n" >& 2
+
 	kdialog \
-		--style breeze \
-		--title "Success - $TITLE" \
-		--msgbox "$1"
+		--style $STYLE \
+		--title $TITLE \
+		--error "$@"
+
+	exit 1
 }
 
-showUnexpectedError () {
+select_device () {
 	kdialog \
-		--style breeze \
-		--title "Error - $TITLE" \
-		--error "Unexpected Error Occurred. Run this software in a Terminal for more details."
+		--style $STYLE \
+		--title $TITLE \
+		--combobox "Select a device." $(lsblk -npdlo NAME)
 }
 
-showProgressDialog () {
+select_image () {
 	kdialog \
-		--title "$TITLE" \
-		--style breeze \
-		--msgbox "Please Wait. This may take some time.\nYou can close this window. You'll be informed once the command completes." &
+		--style $STYLE \
+		--title $TITLE \
+		--combobox "Select an image." $(pkexec znx -nc list $DEVICE | awk '{ print $0, $0, "off" }')
 }
 
-Init () {
-	echo "Initializing device."
+select_command () {
+	CMDS="update,revert,remove,clean"
+	CMDS="${CMDS/,/\\n}"
 
-	if kdialog --style breeze --yesno "This will erase your device. Are you sure you wish to proceed?."; then
-		DEVICE=$(GetDevice)
-
-		showProgressDialog
-
-		znx init $DEVICE &&
-			showSuccess "Device initialized." ||
-			showUnexpectedError
-	fi
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--combobox "Select an operation to perform over the image." $(printf "$CMDS" | awk '{ print $0, $0, "off" }')
 }
 
-Deploy () {
-	echo "Deploying image."
-
-	DEVICE=$(GetDevice)
-	IMAGENAME=$(GetName)
-	IMAGEPATH=$(GetPath)
-
-	showProgressDialog	
-
-	znx deploy $DEVICE $IMAGENAME $IMAGEPATH &&
-		showSuccess "Successfully deployed $IMAGENAME." ||
-		showUnexpectedError
+ask_for_deployment () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--yesno "Do you want to deploy an image?"
 }
 
-List () {	
-	echo "Listing deployed images."
-
-	DEVICE=$(GetDevice)
-
-	showProgressDialog
-
-	kdialog --style breeze --textbox $(znx list $DEVICE) ||
-		showUnexpectedError
+get_url () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--inputbox "Please specify the location of the image to deploy (URL or path)."
 }
 
-Update () {
-	echo "Updating deployed image."
-
-	DEVICE=$(GetDevice)
-	IMAGENAME=$(GetName)
-
-	showProgressDialog
-
-	znx update $DEVICE $IMAGENAME &&
-		showSuccess "Successfully updated $IMAGENAME." ||
-		showUnexpectedError
+get_image_name () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--inputbox "Please provide a name for this image."
 }
 
-Remove () {	
-	echo "Removing deployed image."
-
-	DEVICE=$(GetDevice)
-	IMAGENAME=$(GetName)
-
-	showProgressDialog
-
-	znx remove $DEVICE $IMAGENAME &&
-		showSuccess "Successfully removed $IMAGENAME" ||
-		showUnexpectedError
+ask_for_device_initialization () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--yesno "$DEVICE has not been initialized yet. Would you like to initialize it?"
 }
+
+notify () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--popup "$@" 5
+}
+
+
+# -- Loop until the user closes the main window.
 
 while :; do
-	OPTIONS="0 init on \
-	1 deploy off \
-	2 list off \
-	3 update off \
-	4 remove off"
 
-	INPUT_OPTION=$(kdialog \
-					--style breeze \
-					--title "$TITLE" \
-					--radiolist "Select the Function to run" $OPTIONS)
+	# -- Choose the device.
 
-	case "$INPUT_OPTION" in
-		0)
-			Init
-		;;
+	DEVICE=
+	DEVICE=$(select_device)
 
-		1)
-			Deploy
-		;;
 
-		2)
-			List
-		;;
+	# -- If the user cancelled the previous step, then exit.
 
-		3)
-			Update
-		;;
+	[ ${#DEVICE} -eq 0 ] &&
+		exit
 
-		4)
-			Remove
-		;;
 
-		*)
-			break
-		;;
-	esac
+	# -- Check if the device has been initialized.
+
+	for d in $DEVICE*; do
+
+		q=
+
+		blkid $d | grep -q ZNX_DATA &&
+			q=$d
+
+	done
+
+	[ ${#q} -eq 0 ] && {
+
+		# -- The device isn't initialized.
+
+		ask_for_device_initialization &&
+			ZNX_ARGS="init $DEVICE" ||
+			continue
+
+	} || {
+
+		# -- The device is initialized. Show the available images.
+
+		ask_for_deployment && {
+
+			COMMAND=
+			COMMAND=deploy
+
+			URL=
+			URL=$(get_url)
+
+			IMAGE=
+			IMAGE=$(get_image_name)
+
+		} || {
+
+			IMAGE=
+			IMAGE=$(select_image)
+
+			[ ${#IMAGE} -eq 0 ] &&
+				continue
+
+			COMMAND=
+			COMMAND=$(select_command)
+
+			[ ${#COMMAND} -eq 0 ] &&
+				continue
+
+		}
+
+	}
+
+
+	# -- Run the desired command.
+
+	notify "Please wait until the command finishes. You'll be notified."
+
+	pkexec znx $COMMAND $DEVICE $IMAGE $URL &&
+		notify "Operation finished with success status." ||
+		notify "Operation failed!"
+
 done
+
+#find . -type d -mindepth 1 -empty -delete
