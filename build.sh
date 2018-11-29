@@ -1,9 +1,15 @@
 #! /bin/sh
 
+
+# -- Exit on errors.
+
+set -e
+
+
 # -- Install dependencies.
 
 apt-get -qq -y update > /dev/null
-apt-get -qq -y install wget patchelf file libcairo2 --no-install-recommends > /dev/null
+apt-get -qq -y install wget patchelf file libcairo2 git --no-install-recommends > /dev/null
 apt-get -qq -y install busybox-static kde-baseapps-bin --no-install-recommends > /dev/null
 
 wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
@@ -28,7 +34,7 @@ printf \
 Type=Application
 Name=znx-gui
 Exec=znx-gui
-Icon=znx-gui
+Icon=znx
 Comment="Graphical frontend for znx."
 Terminal=false
 Categories=Utility;
@@ -67,12 +73,12 @@ git clone https://github.com/Nitrux/znx $ZNX_TMP_DIR
 (
 	cd $ZNX_TMP_DIR
 
+	bash build.sh
+
 	rm \
 		appdir/znx.desktop \
-		appdir/AppRun \
-		appdir/AppRun \
+		appdir/AppRun
 
-	bash build.sh
 )
 
 cp -r $ZNX_TMP_DIR/appdir .
