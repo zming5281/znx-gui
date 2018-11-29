@@ -1,11 +1,5 @@
 #! /bin/sh
 
-
-# -- Exit on errors.
-
-set -e
-
-
 # -- Install dependencies.
 
 apt-get -qq -y update > /dev/null
