@@ -11,18 +11,17 @@ wget -q https://raw.githubusercontent.com/luis-lavaire/bin/master/copier
 
 chmod +x appimagetool
 chmod +x copier
-chmod +x znx-gui
+chmod +x appdir/znx-gui
 
 
 # -- Write the commit that generated this build.
 
-sed -i "s/@TRAVIS_COMMIT@/${1:0:7}/" znx-gui
+sed -i "s/@TRAVIS_COMMIT@/${1:0:7}/" appdir/znx-gui
 
 
 # -- Populate appdir.
 
 mkdir -p appdir/bin
-cp znx-gui appdir
 
 printf \
 '[Desktop Entry]
@@ -30,10 +29,9 @@ Type=Application
 Name=znx-gui
 Exec=znx-gui
 Icon=znx-gui
-Comment="Operating system manager."
-Terminal=true
+Comment="Graphical frontend for znx."
+Terminal=false
 Categories=Utility;
-OnlyShowIn=
 ' > appdir/znx-gui.desktop
 
 
@@ -44,7 +42,7 @@ printf \
 
 export LD_LIBRARY_PATH=$APPDIR/usr/lib:$LD_LIBRARY_PATH
 export PATH=$PATH:$APPDIR/bin:$APPDIR/sbin:$APPDIR/usr/bin:$APPDIR/usr/sbin
-exec $APPDIR/znx-gui $@
+exec $APPDIR/znx-gui
 ' > appdir/AppRun
 
 chmod a+x appdir/AppRun
@@ -68,6 +66,12 @@ git clone https://github.com/Nitrux/znx $ZNX_TMP_DIR
 
 (
 	cd $ZNX_TMP_DIR
+
+	rm \
+		appdir/znx.desktop \
+		appdir/AppRun \
+		appdir/AppRun \
+
 	bash build.sh
 )
 
