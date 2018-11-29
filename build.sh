@@ -36,9 +36,6 @@ Categories=Utility;
 OnlyShowIn=
 ' > appdir/znx-gui.desktop
 
-touch appdir/znx-gui.png
-
-
 
 # -- Create a wrapper script.
 
@@ -62,6 +59,19 @@ chmod a+x appdir/AppRun
 # -- Copy binaries and its dependencies to appdir.
 
 ./copier kdialog appdir
+
+
+# -- Include znx.
+
+ZNX_TMP_DIR=$(mktemp -d)
+git clone https://github.com/Nitrux/znx $ZNX_TMP_DIR
+
+(
+	cd $ZNX_TMP_DIR
+	bash build.sh
+)
+
+cp -r $ZNX_TMP_DIR/appdir .
 
 
 # -- Generate the AppImage.

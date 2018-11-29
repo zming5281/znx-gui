@@ -1,6 +1,8 @@
 #! /bin/sh
 
 
+set -x
+
 # -- Variables.
 
 TITLE=ZNX-GUI.
@@ -55,7 +57,7 @@ get_url () {
 	kdialog \
 		--style $STYLE \
 		--title $TITLE \
-		--inputbox "Please specify the location of the image to deploy (URL or path)."
+		--inputbox "Please provide the location of the image to deploy (URL or path)."
 }
 
 get_image_name () {
@@ -158,5 +160,3 @@ while :; do
 		notify "Operation failed!"
 
 done
-
-#find . -type d -mindepth 1 -empty -delete
