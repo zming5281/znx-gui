@@ -5,7 +5,7 @@ script:
 
 after_success:
   - wget -q https://github.com/probonopd/uploadtool/raw/master/upload.sh
-  - bash upload.sh out/znx-gui
+  - bash upload.sh out/*
 
 branches:
   except:

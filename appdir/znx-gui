@@ -1,0 +1,162 @@
+#! /bin/sh
+
+
+set -x
+
+# -- Variables.
+
+TITLE=ZNX-GUI.
+STYLE=breeze
+
+
+# -- Functions.
+
+error () {
+	printf "znx-gui: \e[31mError:\e[0m $@\n" >& 2
+
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--error "$@"
+
+	exit 1
+}
+
+select_device () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--combobox "Select a device." $(lsblk -npdlo NAME)
+}
+
+select_image () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--combobox "Select an image." $(pkexec znx -nc list $DEVICE | awk '{ print $0, $0, "off" }')
+}
+
+select_command () {
+	CMDS="update,revert,remove,clean"
+	CMDS="${CMDS/,/\\n}"
+
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--combobox "Select an operation to perform over the image." $(printf "$CMDS" | awk '{ print $0, $0, "off" }')
+}
+
+ask_for_deployment () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--yesno "Do you want to deploy an image?"
+}
+
+get_url () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--inputbox "Please provide the location of the image to deploy (URL or path)."
+}
+
+get_image_name () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--inputbox "Please provide a name for this image."
+}
+
+ask_for_device_initialization () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--yesno "$DEVICE has not been initialized yet. Would you like to initialize it?"
+}
+
+notify () {
+	kdialog \
+		--style $STYLE \
+		--title $TITLE \
+		--popup "$@" 5
+}
+
+
+# -- Loop until the user closes the main window.
+
+while :; do
+
+	# -- Choose the device.
+
+	DEVICE=
+	DEVICE=$(select_device)
+
+
+	# -- If the user cancelled the previous step, then exit.
+
+	[ ${#DEVICE} -eq 0 ] &&
+		exit
+
+
+	# -- Check if the device has been initialized.
+
+	for d in $DEVICE*; do
+
+		q=
+
+		blkid $d | grep -q ZNX_DATA &&
+			q=$d
+
+	done
+
+	[ ${#q} -eq 0 ] && {
+
+		# -- The device isn't initialized.
+
+		ask_for_device_initialization &&
+			ZNX_ARGS="init $DEVICE" ||
+			continue
+
+	} || {
+
+		# -- The device is initialized. Show the available images.
+
+		ask_for_deployment && {
+
+			COMMAND=
+			COMMAND=deploy
+
+			URL=
+			URL=$(get_url)
+
+			IMAGE=
+			IMAGE=$(get_image_name)
+
+		} || {
+
+			IMAGE=
+			IMAGE=$(select_image)
+
+			[ ${#IMAGE} -eq 0 ] &&
+				continue
+
+			COMMAND=
+			COMMAND=$(select_command)
+
+			[ ${#COMMAND} -eq 0 ] &&
+				continue
+
+		}
+
+	}
+
+
+	# -- Run the desired command.
+
+	notify "Please wait until the command finishes. You'll be notified."
+
+	pkexec znx $COMMAND $DEVICE $IMAGE $URL &&
+		notify "Operation finished with success status." ||
+		notify "Operation failed!"
+
+done
