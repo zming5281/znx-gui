@@ -1,7 +1,5 @@
-#! /bin/sh
+#! /bin/bash
 
-
-set -x
 
 # -- Variables.
 

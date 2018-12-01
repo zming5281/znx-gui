@@ -71,6 +71,7 @@ git clone https://github.com/Nitrux/znx $ZNX_TMP_DIR
 
 	rm \
 		appdir/znx.desktop \
+		appdir/znx.png \
 		appdir/AppRun
 
 )
