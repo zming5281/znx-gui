@@ -28,7 +28,7 @@ printf \
 Type=Application
 Name=znx-gui
 Exec=znx-gui
-Icon=znx
+Icon=znx-gui
 Comment="Graphical frontend for znx."
 Terminal=false
 Categories=Utility;
