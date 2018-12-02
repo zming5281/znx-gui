@@ -31,17 +31,17 @@ select_image () {
 	kdialog \
 		--style $STYLE \
 		--title $TITLE \
-		--combobox "Select an image." $(pkexec znx list $DEVICE | awk '{ print $0, $0, "off" }')
+		--combobox "Select an image." $(pkexec znx list $DEVICE)
 }
 
 select_command () {
 	CMDS="update,revert,remove,clean"
-	CMDS="${CMDS/,/\\n}"
+	CMDS="${CMDS//,/ }"
 
 	kdialog \
 		--style $STYLE \
 		--title $TITLE \
-		--combobox "Select an operation to perform over the image." $(printf "$CMDS" | awk '{ print $0, $0, "off" }')
+		--combobox "Select an operation to perform over the image." $CMDS
 }
 
 ask_for_deployment () {
@@ -76,7 +76,7 @@ notify () {
 	kdialog \
 		--style $STYLE \
 		--title $TITLE \
-		--popup "$@" 5
+		--passivepopup "$@" 5
 }
 
 
