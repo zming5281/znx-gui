@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/bash -x
 
 
 # -- Variables.
@@ -31,7 +31,7 @@ select_image () {
 	kdialog \
 		--style $STYLE \
 		--title $TITLE \
-		--combobox "Select an image." $(pkexec znx -nc list $DEVICE | awk '{ print $0, $0, "off" }')
+		--combobox "Select an image." $(pkexec znx list $DEVICE | awk '{ print $0, $0, "off" }')
 }
 
 select_command () {
@@ -102,8 +102,10 @@ while :; do
 
 		q=
 
-		blkid $d | grep -q ZNX_DATA &&
+		blkid $d | grep -q ZNX_DATA && {
 			q=$d
+			break
+		}
 
 	done
 
