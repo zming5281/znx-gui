@@ -31,7 +31,7 @@ select_image () {
 	kdialog \
 		--style $STYLE \
 		--title $TITLE \
-		--combobox "Select an image." $(pkexec env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY znx list $DEVICE)
+		--combobox "Select an image." $(pkexec znx list $DEVICE)
 }
 
 select_command () {
@@ -155,7 +155,7 @@ while :; do
 
 	notify "Please wait until the command finishes. You'll be notified."
 
-	pkexec env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY znx $COMMAND $DEVICE $IMAGE $URL &&
+	pkexec znx $COMMAND $DEVICE $IMAGE $URL &&
 		notify "Operation finished with success status." ||
 		notify "Operation failed!"
 
