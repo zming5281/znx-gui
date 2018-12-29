@@ -1,4 +1,4 @@
-#! /bin/bash -x
+#! /bin/bash
 
 
 # -- Variables.
@@ -35,8 +35,7 @@ select_image () {
 }
 
 select_command () {
-	CMDS="update,revert,remove,clean"
-	CMDS="${CMDS//,/ }"
+	CMDS="update revert remove clean"
 
 	kdialog \
 		--style $STYLE \
@@ -156,7 +155,7 @@ while :; do
 	notify "Please wait until the command finishes. You'll be notified."
 
 	pkexec znx $COMMAND $DEVICE $IMAGE $URL &&
-		notify "Operation finished with success status." ||
+		notify "Operation completed with success." ||
 		notify "Operation failed!"
 
 done
