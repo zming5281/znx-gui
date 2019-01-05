@@ -1,15 +1,14 @@
 sudo: required
-
 script:
-  - sudo docker run --rm -v $(pwd)/:/build/ -w /build/ ubuntu:xenial /bin/bash build.sh $TRAVIS_COMMIT
-
+- sudo docker run --rm -v $(pwd)/:/build/ -w /build/ ubuntu:xenial /bin/bash build.sh
+  $TRAVIS_COMMIT
 after_success:
-  - wget -q https://github.com/probonopd/uploadtool/raw/master/upload.sh
-  - bash upload.sh out/*
-
+- wget -q https://github.com/probonopd/uploadtool/raw/master/upload.sh
+- bash upload.sh out/*
 branches:
   except:
-    - /^(?i:continuous)$/
-
+  - "/^(?i:continuous)$/"
 notifications:
   email: false
+  slack:
+    secure: Snwr+/22CV2BihsfMJbUqap10MHPmmJ450+tXVWquYVCIXWNfThcAAcV9HbQx397YMlFJxyqGb87WUi0A7IvymCVftddqLdkISPSH/C0FeUKcCO1p7/qx+fybE/wrtQbqRQAX7+ifpUoZ9zH6WNk5HsI4JU/S8ZGEPjvDit5kJt3DZ16qoy1+zbzJpYbukyXzNAdBELDC2ysNgEM0n7iSWzorGO/z9I7gjqmrisJaGzk503NwNFYjvAbORkD361l+8frsa6fLxCH8/tA4MDo1rz9n9jsiHwgXceFrzoJaOACo9DiUD5WWsq6JZ3xu2mGExcKQDP4WJJja/pmvDunYAYdAaI05WIrY+Mqu0af2bm7+fn4Ew1XdCBK889HA7gt3vK+XpIAuiBLhB3FdEWHYQYCdftRQ/1nmgHg46YKDLerEDR1TlvwJwIP44LRrtHaXpBkqmzdhmZaOrKcMjcJj8zaqEb6quKRFU3eQPgCrAned3wzD20+/MjETtrWwEi+AYuxmnSR2TxbfK189lNfQa7X5K1Li+FrEoPHB5tdYNexfxA3CzqIiR4JafuUG3bdCIjj6EZKa0RIPb4Zwdjv1unTYY7M/kucaHxWRIyrRNIVeTFHMLigxcKQNltWsj5v813T+ToC7TrDo51MjGgE40RqmJOkbXNt9Saf4hMspk0=
